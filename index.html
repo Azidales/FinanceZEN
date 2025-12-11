@@ -1,20 +1,15 @@
-<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Financeiro Zen Universal</title>
+    <title>Financeiro Zen Ultimate</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- FIREBASE COMPAT LIBRARIES (Funcionam em qualquer lugar) -->
+    <!-- FIREBASE COMPAT (Universal) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -29,7 +24,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Glassmorphism */
         .glass {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -38,7 +32,7 @@
         }
         
         .glass-card {
-            background: rgba(30, 41, 59, 0.6);
+            background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -46,7 +40,6 @@
         }
         .glass-card:active { transform: scale(0.99); }
 
-        /* Inputs */
         .input-zen {
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -54,130 +47,87 @@
             outline: none;
             transition: all 0.3s;
         }
-        .input-zen:focus {
-            border-color: #818cf8;
-            box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
-        }
+        .input-zen:focus { border-color: #818cf8; }
 
         input[type="month"] {
             background: transparent; border: none; color: white;
             font-family: 'Poppins', sans-serif; font-size: 0.95rem;
             font-weight: 500; outline: none; cursor: pointer;
         }
-        input[type="month"]::-webkit-calendar-picker-indicator {
-            filter: invert(1); opacity: 0.8; cursor: pointer;
-        }
+        input[type="month"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.8; cursor: pointer; }
 
-        /* Status Pagamento */
         .item-paid { opacity: 0.5; background: rgba(15, 23, 42, 0.8); }
         .item-paid .amount-text { color: #64748b !important; }
         .item-paid .icon-check { background-color: #2dd4bf; border-color: #2dd4bf; color: #0f172a; }
 
-        /* Gráfico de Blocos */
-        .chart-block {
-            transition: transform 0.1s, opacity 0.2s;
-            cursor: pointer;
-        }
-        .chart-block:active { transform: scale(0.95); opacity: 0.8; }
+        .chart-block { transition: transform 0.1s; cursor: pointer; }
+        .chart-block:active { transform: scale(0.95); }
 
-        /* Views Animation */
         .view-section { display: none; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .view-section.active { display: flex; } 
         .app-view.active { display: grid; } 
-        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Modal */
         .modal { transition: opacity 0.2s ease, transform 0.2s ease; }
         .modal-active { transform: scale(1); opacity: 1; pointer-events: auto; }
         .modal-hidden { transform: scale(0.95); opacity: 0; pointer-events: none; }
 
-        /* Tooltip do Gráfico */
         .chart-info-box {
-            min-height: 40px;
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(15, 23, 42, 0.5); border-radius: 8px;
-            margin-bottom: 10px; font-size: 0.85rem; color: #e2e8f0;
-            border: 1px solid rgba(255,255,255,0.1); opacity: 0; transition: opacity 0.3s;
+            min-height: 40px; display: flex; align-items: center; justify-content: center;
+            background: rgba(15, 23, 42, 0.5); border-radius: 8px; margin-bottom: 10px;
+            font-size: 0.85rem; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1);
+            opacity: 0; transition: opacity 0.3s;
         }
         .chart-info-box.visible { opacity: 1; }
         
-        /* Spinner */
         .loader {
-            border: 3px solid rgba(255,255,255,0.1);
-            border-left-color: #818cf8;
-            border-radius: 50%;
-            width: 24px; height: 24px;
-            animation: spin 1s linear infinite;
+            border: 3px solid rgba(255,255,255,0.1); border-left-color: #818cf8;
+            border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Toast Notification */
         #toast {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 8px;
-            padding: 16px;
-            position: fixed;
-            z-index: 9999;
-            left: 50%;
-            top: 30px;
-            transform: translateX(-50%);
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.3s, top 0.3s;
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 8px; padding: 16px; position: fixed;
+            z-index: 9999; left: 50%; top: 30px; transform: translateX(-50%);
+            font-size: 14px; opacity: 0; transition: opacity 0.3s, top 0.3s;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
         #toast.show { visibility: visible; opacity: 1; top: 50px; }
         #toast.error { background-color: #e11d48; }
         #toast.success { background-color: #10b981; }
 
+        /* Estilos para a lista de sub-itens */
+        .sub-item-row { animation: slideIn 0.2s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-200">
 
-    <!-- TOAST NOTIFICATION -->
     <div id="toast">Notificação</div>
 
-    <!-- LOGIN SCREEN -->
+    <!-- AUTH -->
     <section id="viewAuth" class="view-section active flex-col items-center justify-center min-h-screen w-full px-6 relative z-50">
         <div class="absolute inset-0 bg-slate-900 z-0"></div>
         <div class="glass p-8 rounded-3xl w-full max-w-md relative z-10 shadow-2xl border border-white/10">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-white mb-1">Finanças<span class="text-indigo-400">.zen</span></h1>
-                <p class="text-indigo-200 text-sm">Seu banco de dados na nuvem</p>
-                <p class="text-xs text-slate-500 mt-2">(Modo Universal)</p>
+                <p class="text-xs text-slate-400 mt-2">Versão Ultimate</p>
             </div>
-
             <form id="authForm" class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-indigo-300 uppercase tracking-wider ml-1">Email</label>
-                    <input type="email" id="email" class="input-zen w-full rounded-xl px-4 py-3 mt-1" placeholder="seu@email.com" required>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-indigo-300 uppercase tracking-wider ml-1">Senha</label>
-                    <input type="password" id="password" class="input-zen w-full rounded-xl px-4 py-3 mt-1" placeholder="••••••••" required>
-                </div>
-                
+                <input type="email" id="email" class="input-zen w-full rounded-xl px-4 py-3" placeholder="Email" required>
+                <input type="password" id="password" class="input-zen w-full rounded-xl px-4 py-3" placeholder="Senha" required>
                 <div class="flex flex-col gap-3 pt-2">
-                    <button type="button" id="btnLogin" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-900/50 transition-all active:scale-[0.98]">
-                        Entrar
-                    </button>
-                    <button type="button" id="btnRegister" class="w-full bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-semibold py-3.5 rounded-xl transition-all">
-                        Criar nova conta
-                    </button>
+                    <button type="button" id="btnLogin" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all">Entrar</button>
+                    <button type="button" id="btnRegister" class="w-full bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-semibold py-3.5 rounded-xl transition-all">Criar conta</button>
                 </div>
             </form>
         </div>
     </section>
 
-    <!-- APP CONTENT (Hidden until logged in) -->
+    <!-- APP -->
     <div id="appContent" class="hidden flex-col min-h-screen pb-28 relative">
         
-        <!-- Header -->
         <header class="pt-10 px-6 pb-4 flex justify-between items-center sticky top-0 z-30 bg-[#0f172a] shadow-lg shadow-indigo-900/10">
             <div class="flex items-center gap-3">
                 <h1 class="text-xl font-bold text-white tracking-tight">Finanças<span class="text-indigo-400">.zen</span></h1>
@@ -188,37 +138,26 @@
                     <i class="fas fa-calendar-alt text-indigo-300 text-xs"></i>
                     <input type="month" id="monthSelector">
                 </div>
-                <button id="btnLogout" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
-                    <i class="fas fa-sign-out-alt text-xs"></i>
-                </button>
+                <button id="btnLogout" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fas fa-sign-out-alt text-xs"></i></button>
             </div>
         </header>
 
         <!-- Resumo -->
         <div class="px-6 mb-6 mt-4">
-            <div class="glass p-6 rounded-3xl relative overflow-hidden shadow-2xl shadow-indigo-900/20 bg-gradient-to-br from-indigo-900/40 to-slate-900/40">
+            <div class="glass p-6 rounded-3xl relative overflow-hidden shadow-2xl bg-gradient-to-br from-indigo-900/40 to-slate-900/40">
                 <div class="relative z-10">
                     <p class="text-indigo-200 text-[10px] font-bold uppercase tracking-widest mb-1">Saldo Previsto</p>
-                    <div class="flex items-baseline gap-1">
-                        <h2 class="text-4xl font-bold text-white tracking-tight" id="monthTotal">R$ 0,00</h2>
-                    </div>
+                    <h2 class="text-4xl font-bold text-white tracking-tight" id="monthTotal">R$ 0,00</h2>
                     <div class="mt-4 flex gap-6">
-                        <div>
-                            <span class="text-[10px] text-indigo-300 block uppercase font-semibold">Entradas</span>
-                            <span class="text-sm font-medium text-emerald-400" id="totalIn">R$ 0,00</span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] text-indigo-300 block uppercase font-semibold">Saídas</span>
-                            <span class="text-sm font-medium text-rose-400" id="totalOut">R$ 0,00</span>
-                        </div>
+                        <div><span class="text-[10px] text-indigo-300 block uppercase font-semibold">Entradas</span><span class="text-sm font-medium text-emerald-400" id="totalIn">R$ 0,00</span></div>
+                        <div><span class="text-[10px] text-indigo-300 block uppercase font-semibold">Saídas</span><span class="text-sm font-medium text-rose-400" id="totalOut">R$ 0,00</span></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW: Home (Lists) -->
+        <!-- VIEW: Home -->
         <main id="viewHome" class="view-section app-view active flex-grow px-4 grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Dia 15 -->
             <div class="flex flex-col h-full">
                 <div class="flex justify-between items-center px-2 mb-3">
                     <div class="flex items-center gap-2">
@@ -229,8 +168,6 @@
                 </div>
                 <div id="list15" class="space-y-3 pb-4"></div>
             </div>
-
-            <!-- Dia 31 -->
             <div class="flex flex-col h-full">
                 <div class="flex justify-between items-center px-2 mb-3 mt-4 md:mt-0">
                     <div class="flex items-center gap-2">
@@ -243,22 +180,11 @@
             </div>
         </main>
 
-        <!-- VIEW: Charts (Blocks) -->
+        <!-- VIEW: Charts -->
         <main id="viewCharts" class="view-section app-view flex-grow px-6 flex-col gap-8 pb-10">
-            <div class="text-center mb-2">
-                <h2 class="text-lg font-bold text-white">Mapa de Gastos</h2>
-                <p class="text-xs text-slate-400">Toque no bloco para detalhes</p>
-            </div>
-            <div>
-                <h3 class="text-xs font-bold text-indigo-300 mb-2 uppercase tracking-wider">Quinzena 1</h3>
-                <div id="infoBox15" class="chart-info-box"></div>
-                <div id="chartContainer15" class="w-full flex flex-wrap rounded-xl overflow-hidden shadow-lg min-h-[60px] bg-slate-800/50 relative"></div>
-            </div>
-            <div>
-                <h3 class="text-xs font-bold text-indigo-300 mb-2 uppercase tracking-wider">Quinzena 2</h3>
-                <div id="infoBox31" class="chart-info-box"></div>
-                <div id="chartContainer31" class="w-full flex flex-wrap rounded-xl overflow-hidden shadow-lg min-h-[60px] bg-slate-800/50 relative"></div>
-            </div>
+            <div class="text-center mb-2"><h2 class="text-lg font-bold text-white">Mapa de Gastos</h2><p class="text-xs text-slate-400">Toque no bloco para detalhes</p></div>
+            <div><h3 class="text-xs font-bold text-indigo-300 mb-2 uppercase tracking-wider">Quinzena 1</h3><div id="infoBox15" class="chart-info-box"></div><div id="chartContainer15" class="w-full flex flex-wrap rounded-xl overflow-hidden shadow-lg min-h-[60px] bg-slate-800/50 relative"></div></div>
+            <div><h3 class="text-xs font-bold text-indigo-300 mb-2 uppercase tracking-wider">Quinzena 2</h3><div id="infoBox31" class="chart-info-box"></div><div id="chartContainer31" class="w-full flex flex-wrap rounded-xl overflow-hidden shadow-lg min-h-[60px] bg-slate-800/50 relative"></div></div>
         </main>
 
         <!-- Navbar -->
@@ -270,27 +196,78 @@
         <!-- Modal -->
         <div id="transactionModal" class="modal modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="app.ui.closeModal()"></div>
-            <div class="bg-[#1e293b] border border-slate-700 w-full max-w-sm rounded-3xl shadow-2xl relative z-10 overflow-hidden transform transition-all">
+            <div class="bg-[#1e293b] border border-slate-700 w-full max-w-sm rounded-3xl shadow-2xl relative z-10 overflow-hidden transform transition-all max-h-[90vh] flex flex-col">
                 <div class="px-6 py-5 border-b border-slate-700/50 flex justify-between items-center bg-slate-800/50">
                     <h3 class="text-lg font-bold text-white" id="modalTitle">Transação</h3>
                     <button onclick="app.ui.closeModal()" class="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
                 </div>
-                <form id="addForm" class="p-6 space-y-5">
+                
+                <form id="addForm" class="p-6 space-y-4 overflow-y-auto custom-scroll">
                     <input type="hidden" id="modalMode"> <input type="hidden" id="modalId"> <input type="hidden" id="modalPeriod">
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Descrição</label>
-                        <input type="text" id="descInput" class="input-zen w-full rounded-xl px-4 py-3 text-sm" required>
+
+                    <!-- Toggle Tipo de Entrada -->
+                    <div class="flex bg-slate-800 p-1 rounded-xl">
+                        <button type="button" onclick="app.ui.toggleEntryMode('simple')" id="btnModeSimple" class="flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white transition-all">Simples</button>
+                        <button type="button" onclick="app.ui.toggleEntryMode('group')" id="btnModeGroup" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all">Detalhado (Fatura)</button>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+
+                    <!-- MODO SIMPLES: Inputs Normais -->
+                    <div id="simpleInputs" class="space-y-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Valor</label>
-                            <input type="number" id="amountInput" step="0.01" class="input-zen w-full rounded-xl px-4 py-3 text-sm" required>
+                            <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Descrição</label>
+                            <input type="text" id="descInput" class="input-zen w-full rounded-xl px-4 py-3 text-sm">
                         </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Tipo</label>
-                            <select id="typeInput" class="input-zen w-full rounded-xl px-4 py-3 text-sm"><option value="expense">Saída</option><option value="income">Entrada</option></select>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Valor</label>
+                                <input type="number" id="amountInput" step="0.01" class="input-zen w-full rounded-xl px-4 py-3 text-sm">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Tipo</label>
+                                <select id="typeInput" class="input-zen w-full rounded-xl px-4 py-3 text-sm"><option value="expense">Saída</option><option value="income">Entrada</option></select>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- MODO GRUPO: Lista de Itens -->
+                    <div id="groupInputs" class="hidden space-y-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Nome do Grupo (ex: Cartão Nubank)</label>
+                            <input type="text" id="groupNameInput" class="input-zen w-full rounded-xl px-4 py-3 text-sm placeholder-slate-500">
+                        </div>
+                        
+                        <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-slate-400">Itens da Fatura</span>
+                                <span class="text-xs font-bold text-emerald-400" id="groupTotalDisplay">Total: R$ 0,00</span>
+                            </div>
+                            
+                            <!-- Lista Dinâmica -->
+                            <div id="subItemsList" class="space-y-2 mb-3 max-h-[150px] overflow-y-auto">
+                                <!-- Itens inseridos aqui -->
+                            </div>
+
+                            <!-- Adicionar Sub-Item -->
+                            <div class="flex gap-2">
+                                <input type="text" id="subItemDesc" placeholder="Item (ex: Uber)" class="input-zen flex-1 rounded-lg px-3 py-2 text-xs">
+                                <input type="number" id="subItemAmount" placeholder="$$" class="input-zen w-20 rounded-lg px-3 py-2 text-xs">
+                                <button type="button" onclick="app.ui.addSubItem()" class="bg-indigo-600 w-8 rounded-lg text-white flex items-center justify-center"><i class="fas fa-plus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Repetição (Só aparece no modo Add) -->
+                    <div id="repeatSection" class="space-y-1.5 pt-2 border-t border-slate-700/50">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="checkRepeat" onchange="document.getElementById('repeatCountDiv').classList.toggle('hidden')" class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-600">
+                            <label for="checkRepeat" class="text-xs text-slate-300">Repetir nos próximos meses?</label>
+                        </div>
+                        <div id="repeatCountDiv" class="hidden flex items-center gap-2 mt-2">
+                            <input type="number" id="repeatCount" value="1" min="1" max="24" class="input-zen w-16 rounded-lg px-2 py-1 text-center text-sm">
+                            <span class="text-xs text-slate-400">vezes (meses)</span>
+                        </div>
+                    </div>
+
                     <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3.5 rounded-xl shadow-lg mt-2 active:scale-[0.98] transition-transform">
                         <span id="modalSubmitText">Salvar</span>
                     </button>
@@ -299,9 +276,8 @@
         </div>
     </div>
 
-    <!-- MAIN LOGIC (No type="module", fully global) -->
+    <!-- LOGIC -->
     <script>
-        // --- 1. CONFIGURAÇÃO FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyAjbtsvVYWCFhRmDquUvf21FqQuCPS8LUk",
             authDomain: "zenfinance-a2eee.firebaseapp.com",
@@ -311,25 +287,16 @@
             appId: "1:798589615602:web:d487e8ff41b91bd4d37f6b"
         };
 
-        // --- 2. INICIALIZAÇÃO SEGURA ---
-        // Namespace Global "app" para evitar conflitos e garantir acesso
         window.app = {
-            currentUser: null,
-            localTransactions: [],
-            db: null,
-            auth: null,
-            unsubscribe: null,
+            currentUser: null, localTransactions: [], db: null, auth: null, unsubscribe: null,
+            tempSubItems: [], // Armazena sub-itens temporariamente
+            currentEntryMode: 'simple', // 'simple' or 'group'
             
-            // Funções UI
-            ui: {},
-            // Ações do Banco
-            actions: {} 
+            ui: {}, actions: {} 
         };
 
         function showToast(msg, type) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.className = 'show ' + type;
+            const t = document.getElementById('toast'); t.innerText = msg; t.className = 'show ' + type;
             setTimeout(() => t.className = t.className.replace('show', ''), 3000);
         }
 
@@ -337,61 +304,16 @@
             firebase.initializeApp(firebaseConfig);
             app.auth = firebase.auth();
             app.db = firebase.firestore();
-            console.log("Firebase inicializado com sucesso.");
-        } catch (e) {
-            console.error("Erro Firebase:", e);
-            showToast("Erro crítico: Firebase não carregou.", 'error');
-        }
+        } catch (e) { showToast("Erro Firebase.", 'error'); }
 
-        // --- 3. ELEMENTOS DOM ---
         const els = {
-            viewAuth: document.getElementById('viewAuth'),
-            appContent: document.getElementById('appContent'),
-            email: document.getElementById('email'),
-            password: document.getElementById('password'),
-            btnLogin: document.getElementById('btnLogin'),
-            btnRegister: document.getElementById('btnRegister'),
-            monthSelector: document.getElementById('monthSelector'),
-            loader: document.getElementById('loadingIndicator')
+            viewAuth: document.getElementById('viewAuth'), appContent: document.getElementById('appContent'),
+            email: document.getElementById('email'), password: document.getElementById('password'),
+            btnLogin: document.getElementById('btnLogin'), btnRegister: document.getElementById('btnRegister'),
+            monthSelector: document.getElementById('monthSelector'), loader: document.getElementById('loadingIndicator')
         };
 
-        // --- 4. AUTHENTICATION LOGIC ---
+        // --- AUTH ---
         app.auth.onAuthStateChanged((user) => {
             app.currentUser = user;
-            if (user) {
-                // Login
-                els.viewAuth.classList.remove('active');
-                setTimeout(() => els.viewAuth.style.display = 'none', 400);
-                els.appContent.classList.remove('hidden');
-                els.appContent.style.display = 'flex';
-                initApp();
-                showToast(`Logado: ${user.email}`, 'success');
-            } else {
-                // Logout
-                els.appContent.classList.add('hidden');
-                els.appContent.style.display = 'none';
-                els.viewAuth.style.display = 'flex';
-                els.viewAuth.classList.add('active');
-                if (app.unsubscribe) app.unsubscribe();
-                app.localTransactions = [];
-            }
-        });
-
-        async function handleAuth(action) {
-            const email = els.email.value;
-            const pass = els.password.value;
-            if (!email || !pass) return showToast('Preencha tudo.', 'error');
-
-            const btn = action === 'login' ? els.btnLogin : els.btnRegister;
-            const original = btn.innerText;
-            btn.innerText = '...';
-            btn.disabled = true;
-
-            try {
-                if (action === 'login') {
-                    await app.auth.signInWithEmailAndPassword(email, pass);
-                } else {
-                    await app.auth.createUserWithEmailAndPassword(email, pass);
-                }
-            } catch (e) {
-                
+       
