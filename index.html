@@ -1,0 +1,646 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Financeiro Zen Universal</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FIREBASE COMPAT LIBRARIES (Funcionam em qualquer lugar) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+        .glass-card:active { transform: scale(0.99); }
+
+        /* Inputs */
+        .input-zen {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .input-zen:focus {
+            border-color: #818cf8;
+            box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+        }
+
+        input[type="month"] {
+            background: transparent; border: none; color: white;
+            font-family: 'Poppins', sans-serif; font-size: 0.95rem;
+            font-weight: 500; outline: none; cursor: pointer;
+        }
+        input[type="month"]::-webkit-calendar-picker-indicator {
+            filter: invert(1); opacity: 0.8; cursor: pointer;
+        }
+
+        /* Status Pagamento */
+        .item-paid { opacity: 0.5; background: rgba(15, 23, 42, 0.8); }
+        .item-paid .amount-text { color: #64748b !important; }
+        .item-paid .icon-check { background-color: #2dd4bf; border-color: #2dd4bf; color: #0f172a; }
+
+        /* Gráfico de Blocos */
+        .chart-block {
+            transition: transform 0.1s, opacity 0.2s;
+            cursor: pointer;
+        }
+        .chart-block:active { transform: scale(0.95); opacity: 0.8; }
+
+        /* Views Animation */
+        .view-section { display: none; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .view-section.active { display: flex; } 
+        .app-view.active { display: grid; } 
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Modal */
+        .modal { transition: opacity 0.2s ease, transform 0.2s ease; }
+        .modal-active { transform: scale(1); opacity: 1; pointer-events: auto; }
+        .modal-hidden { transform: scale(0.95); opacity: 0; pointer-events: none; }
+
+        /* Tooltip do Gráfico */
+        .chart-info-box {
+            min-height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(15, 23, 42, 0.5); border-radius: 8px;
+            margin-bottom: 10px; font-size: 0.85rem; color: #e2e8f0;
+            border: 1px solid rgba(255,255,255,0.1); opacity: 0; transition: opacity 0.3s;
+        }
+        .chart-info-box.visible { opacity: 1; }
+        
+        /* Spinner */
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-left-color: #818cf8;
+            border-radius: 50%;
+            width: 24px; height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 9999;
+            left: 50%;
+            top: 30px;
+            transform: translateX(-50%);
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s, top 0.3s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        #toast.show { visibility: visible; opacity: 1; top: 50px; }
+        #toast.error { background-color: #e11d48; }
+        #toast.success { background-color: #10b981; }
+
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-200">
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast">Notificação</div>
+
+    <!-- LOGIN SCREEN -->
+    <section id="viewAuth" class="view-section active flex-col items-center justify-center min-h-screen w-full px-6 relative z-50">
+        <div class="absolute inset-0 bg-slate-900 z-0"></div>
+        <div class="glass p-8 rounded-3xl w-full max-w-md relative z-10 shadow-2xl border border-white/10">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-white mb-1">Finanças<span class="text-indigo-400">.zen</span></h1>
+                <p class="text-indigo-200 text-sm">Seu banco de dados na nuvem</p>
+                <p class="text-xs text-slate-500 mt-2">(Modo Universal)</p>
+            </div>
+
+            <form id="authForm" class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-indigo-300 uppercase tracking-wider ml-1">Email</label>
+                    <input type="email" id="email" class="input-zen w-full rounded-xl px-4 py-3 mt-1" placeholder="seu@email.com" required>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-indigo-300 uppercase tracking-wider ml-1">Senha</label>
+                    <input type="password" id="password" class="input-zen w-full rounded-xl px-4 py-3 mt-1" placeholder="••••••••" required>
+                </div>
+                
+                <div class="flex flex-col gap-3 pt-2">
+                    <button type="button" id="btnLogin" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-900/50 transition-all active:scale-[0.98]">
+                        Entrar
+                    </button>
+                    <button type="button" id="btnRegister" class="w-full bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-semibold py-3.5 rounded-xl transition-all">
+                        Criar nova conta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- APP CONTENT (Hidden until logged in) -->
+    <div id="appContent" class="hidden flex-col min-h-screen pb-28 relative">
+        
+        <!-- Header -->
+        <header class="pt-10 px-6 pb-4 flex justify-between items-center sticky top-0 z-30 bg-[#0f172a] shadow-lg shadow-indigo-900/10">
+            <div class="flex items-center gap-3">
+                <h1 class="text-xl font-bold text-white tracking-tight">Finanças<span class="text-indigo-400">.zen</span></h1>
+                <div id="loadingIndicator" class="loader hidden"></div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="glass px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10 bg-white/5">
+                    <i class="fas fa-calendar-alt text-indigo-300 text-xs"></i>
+                    <input type="month" id="monthSelector">
+                </div>
+                <button id="btnLogout" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                    <i class="fas fa-sign-out-alt text-xs"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Resumo -->
+        <div class="px-6 mb-6 mt-4">
+            <div class="glass p-6 rounded-3xl relative overflow-hidden shadow-2xl shadow-indigo-900/20 bg-gradient-to-br from-indigo-900/40 to-slate-900/40">
+                <div class="relative z-10">
+                    <p class="text-indigo-200 text-[10px] font-bold uppercase tracking-widest mb-1">Saldo Previsto</p>
+                    <div class="flex items-baseline gap-1">
+                        <h2 class="text-4xl font-bold text-white tracking-tight" id="monthTotal">R$ 0,00</h2>
+                    </div>
+                    <div class="mt-4 flex gap-6">
+                        <div>
+                            <span class="text-[10px] text-indigo-300 block uppercase font-semibold">Entradas</span>
+                            <span class="text-sm font-medium text-emerald-400" id="totalIn">R$ 0,00</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-indigo-300 block uppercase font-semibold">Saídas</span>
+                            <span class="text-sm font-medium text-rose-400" id="totalOut">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: Home (Lists) -->
+        <main id="viewHome" class="view-section app-view active flex-grow px-4 grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Dia 15 -->
+            <div class="flex flex-col h-full">
+                <div class="flex justify-between items-center px-2 mb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300"><i class="fas fa-moon text-sm"></i></div>
+                        <div><h3 class="text-sm font-bold text-white">Dia 15</h3><p class="text-[10px] text-indigo-300" id="balance15">R$ 0,00</p></div>
+                    </div>
+                    <button onclick="app.ui.openModal('add', '15')" class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform"><i class="fas fa-plus text-xs"></i></button>
+                </div>
+                <div id="list15" class="space-y-3 pb-4"></div>
+            </div>
+
+            <!-- Dia 31 -->
+            <div class="flex flex-col h-full">
+                <div class="flex justify-between items-center px-2 mb-3 mt-4 md:mt-0">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-300"><i class="fas fa-sun text-sm"></i></div>
+                        <div><h3 class="text-sm font-bold text-white">Dia 30/31</h3><p class="text-[10px] text-amber-300/80" id="balance31">R$ 0,00</p></div>
+                    </div>
+                    <button onclick="app.ui.openModal('add', '31')" class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform"><i class="fas fa-plus text-xs"></i></button>
+                </div>
+                <div id="list31" class="space-y-3 pb-4"></div>
+            </div>
+        </main>
+
+        <!-- VIEW: Charts (Blocks) -->
+        <main id="viewCharts" class="view-section app-view flex-grow px-6 flex-col gap-8 pb-10">
+            <div class="text-center mb-2">
+                <h2 class="text-lg font-bold text-white">Mapa de Gastos</h2>
+                <p class="text-xs text-slate-400">Toque no bloco para detalhes</p>
+            </div>
+            <div>
+                <h3 class="text-xs font-bold text-indigo-300 mb-2 uppercase tracking-wider">Quinzena 1</h3>
+                <div id="infoBox15" class="chart-info-box"></div>
+                <div id="chartContainer15" class="w-full flex flex-wrap rounded-xl overflow-hidden shadow-lg min-h-[60px] bg-slate-800/50 relative"></div>
+            </div>
+            <div>
+                <h3 class="text-xs font-bold text-indigo-300 mb-2 uppercase tracking-wider">Quinzena 2</h3>
+                <div id="infoBox31" class="chart-info-box"></div>
+                <div id="chartContainer31" class="w-full flex flex-wrap rounded-xl overflow-hidden shadow-lg min-h-[60px] bg-slate-800/50 relative"></div>
+            </div>
+        </main>
+
+        <!-- Navbar -->
+        <nav class="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-auto min-w-[200px] glass rounded-full px-1.5 py-1.5 flex justify-center items-center gap-1 z-40 shadow-2xl bg-slate-900/90 backdrop-blur-xl border border-white/10">
+            <button onclick="app.ui.switchTab('home')" id="btnHome" class="nav-btn active flex-1 py-3 px-6 rounded-full transition-all duration-200 flex justify-center"><i class="fas fa-list text-lg"></i></button>
+            <button onclick="app.ui.switchTab('charts')" id="btnCharts" class="nav-btn text-white/40 flex-1 py-3 px-6 rounded-full transition-all duration-200 flex justify-center"><i class="fas fa-layer-group text-lg"></i></button>
+        </nav>
+
+        <!-- Modal -->
+        <div id="transactionModal" class="modal modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="app.ui.closeModal()"></div>
+            <div class="bg-[#1e293b] border border-slate-700 w-full max-w-sm rounded-3xl shadow-2xl relative z-10 overflow-hidden transform transition-all">
+                <div class="px-6 py-5 border-b border-slate-700/50 flex justify-between items-center bg-slate-800/50">
+                    <h3 class="text-lg font-bold text-white" id="modalTitle">Transação</h3>
+                    <button onclick="app.ui.closeModal()" class="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="addForm" class="p-6 space-y-5">
+                    <input type="hidden" id="modalMode"> <input type="hidden" id="modalId"> <input type="hidden" id="modalPeriod">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Descrição</label>
+                        <input type="text" id="descInput" class="input-zen w-full rounded-xl px-4 py-3 text-sm" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Valor</label>
+                            <input type="number" id="amountInput" step="0.01" class="input-zen w-full rounded-xl px-4 py-3 text-sm" required>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Tipo</label>
+                            <select id="typeInput" class="input-zen w-full rounded-xl px-4 py-3 text-sm"><option value="expense">Saída</option><option value="income">Entrada</option></select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3.5 rounded-xl shadow-lg mt-2 active:scale-[0.98] transition-transform">
+                        <span id="modalSubmitText">Salvar</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN LOGIC (No type="module", fully global) -->
+    <script>
+        // --- 1. CONFIGURAÇÃO FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjbtsvVYWCFhRmDquUvf21FqQuCPS8LUk",
+            authDomain: "zenfinance-a2eee.firebaseapp.com",
+            projectId: "zenfinance-a2eee",
+            storageBucket: "zenfinance-a2eee.firebasestorage.app",
+            messagingSenderId: "798589615602",
+            appId: "1:798589615602:web:d487e8ff41b91bd4d37f6b"
+        };
+
+        // --- 2. INICIALIZAÇÃO SEGURA ---
+        // Namespace Global "app" para evitar conflitos e garantir acesso
+        window.app = {
+            currentUser: null,
+            localTransactions: [],
+            db: null,
+            auth: null,
+            unsubscribe: null,
+            
+            // Funções UI
+            ui: {},
+            // Ações do Banco
+            actions: {} 
+        };
+
+        function showToast(msg, type) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = 'show ' + type;
+            setTimeout(() => t.className = t.className.replace('show', ''), 3000);
+        }
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            app.auth = firebase.auth();
+            app.db = firebase.firestore();
+            console.log("Firebase inicializado com sucesso.");
+        } catch (e) {
+            console.error("Erro Firebase:", e);
+            showToast("Erro crítico: Firebase não carregou.", 'error');
+        }
+
+        // --- 3. ELEMENTOS DOM ---
+        const els = {
+            viewAuth: document.getElementById('viewAuth'),
+            appContent: document.getElementById('appContent'),
+            email: document.getElementById('email'),
+            password: document.getElementById('password'),
+            btnLogin: document.getElementById('btnLogin'),
+            btnRegister: document.getElementById('btnRegister'),
+            monthSelector: document.getElementById('monthSelector'),
+            loader: document.getElementById('loadingIndicator')
+        };
+
+        // --- 4. AUTHENTICATION LOGIC ---
+        app.auth.onAuthStateChanged((user) => {
+            app.currentUser = user;
+            if (user) {
+                // Login
+                els.viewAuth.classList.remove('active');
+                setTimeout(() => els.viewAuth.style.display = 'none', 400);
+                els.appContent.classList.remove('hidden');
+                els.appContent.style.display = 'flex';
+                initApp();
+                showToast(`Logado: ${user.email}`, 'success');
+            } else {
+                // Logout
+                els.appContent.classList.add('hidden');
+                els.appContent.style.display = 'none';
+                els.viewAuth.style.display = 'flex';
+                els.viewAuth.classList.add('active');
+                if (app.unsubscribe) app.unsubscribe();
+                app.localTransactions = [];
+            }
+        });
+
+        async function handleAuth(action) {
+            const email = els.email.value;
+            const pass = els.password.value;
+            if (!email || !pass) return showToast('Preencha tudo.', 'error');
+
+            const btn = action === 'login' ? els.btnLogin : els.btnRegister;
+            const original = btn.innerText;
+            btn.innerText = '...';
+            btn.disabled = true;
+
+            try {
+                if (action === 'login') {
+                    await app.auth.signInWithEmailAndPassword(email, pass);
+                } else {
+                    await app.auth.createUserWithEmailAndPassword(email, pass);
+                }
+            } catch (e) {
+                let msg = e.message;
+                if (e.code === 'auth/wrong-password') msg = 'Senha errada.';
+                if (e.code === 'auth/user-not-found') msg = 'Usuário não existe.';
+                if (e.code === 'auth/email-already-in-use') msg = 'Email já usado.';
+                showToast(msg, 'error');
+            } finally {
+                btn.innerText = original;
+                btn.disabled = false;
+            }
+        }
+
+        els.btnLogin.onclick = (e) => { e.preventDefault(); handleAuth('login'); };
+        els.btnRegister.onclick = (e) => { e.preventDefault(); handleAuth('register'); };
+        document.getElementById('btnLogout').onclick = () => app.auth.signOut();
+
+        // --- 5. FIRESTORE LOGIC ---
+        function initApp() {
+            const now = new Date();
+            if (!els.monthSelector.value) {
+                const y = now.getFullYear();
+                const m = String(now.getMonth() + 1).padStart(2, '0');
+                els.monthSelector.value = `${y}-${m}`;
+            }
+            setupListener();
+        }
+
+        function setupListener() {
+            if (!app.currentUser) return;
+            els.loader.classList.remove('hidden');
+
+            // Compat Syntax
+            app.unsubscribe = app.db.collection('transactions')
+                .where('userId', '==', app.currentUser.uid)
+                .onSnapshot((snapshot) => {
+                    app.localTransactions = [];
+                    snapshot.forEach(doc => {
+                        app.localTransactions.push({ id: doc.id, ...doc.data() });
+                    });
+                    render();
+                    els.loader.classList.add('hidden');
+                }, (error) => {
+                    console.error("Firestore Error:", error);
+                    els.loader.classList.add('hidden');
+                    if (error.code === 'permission-denied') {
+                        showToast("Erro: Permissão negada no banco de dados. Verifique as Regras no console.", 'error');
+                    } else {
+                        showToast("Erro de conexão.", 'error');
+                    }
+                });
+        }
+
+        // --- 6. ACTIONS (CRUD) ---
+        app.actions.add = async (data) => {
+            if (!app.currentUser) return;
+            try {
+                await app.db.collection('transactions').add({
+                    ...data,
+                    userId: app.currentUser.uid,
+                    createdAt: Date.now()
+                });
+                showToast("Adicionado!", "success");
+            } catch (e) { showToast("Erro ao adicionar.", "error"); }
+        };
+
+        app.actions.update = async (id, data) => {
+            try {
+                await app.db.collection('transactions').doc(id).update(data);
+                showToast("Atualizado!", "success");
+            } catch (e) { showToast("Erro ao atualizar.", "error"); }
+        };
+
+        app.actions.delete = async (id) => {
+            if (confirm("Excluir item?")) {
+                try {
+                    await app.db.collection('transactions').doc(id).delete();
+                } catch (e) { showToast("Erro ao excluir.", "error"); }
+            }
+        };
+
+        app.actions.togglePaid = async (id, currentStatus) => {
+            try {
+                await app.db.collection('transactions').doc(id).update({ paid: !currentStatus });
+            } catch (e) { showToast("Erro ao alterar status.", "error"); }
+        };
+
+        // --- 7. UI LOGIC ---
+        app.ui.openModal = (mode, period, id = null) => {
+            document.getElementById('modalMode').value = mode;
+            document.getElementById('modalPeriod').value = period;
+            const modal = document.getElementById('transactionModal');
+            
+            if (mode === 'edit' && id) {
+                const item = app.localTransactions.find(i => i.id === id);
+                if (item) {
+                    document.getElementById('modalTitle').innerText = 'Editar';
+                    document.getElementById('modalSubmitText').innerText = 'Salvar';
+                    document.getElementById('modalId').value = id;
+                    document.getElementById('descInput').value = item.description;
+                    document.getElementById('amountInput').value = item.amount;
+                    document.getElementById('typeInput').value = item.type;
+                }
+            } else {
+                document.getElementById('modalTitle').innerText = 'Novo Item';
+                document.getElementById('modalSubmitText').innerText = 'Adicionar';
+                document.getElementById('modalId').value = '';
+                document.getElementById('descInput').value = '';
+                document.getElementById('amountInput').value = '';
+            }
+            modal.classList.remove('modal-hidden');
+            modal.classList.add('modal-active');
+        };
+
+        app.ui.closeModal = () => {
+            const modal = document.getElementById('transactionModal');
+            modal.classList.remove('modal-active');
+            modal.classList.add('modal-hidden');
+        };
+
+        app.ui.switchTab = (tab) => {
+            document.getElementById('viewHome').classList.toggle('active', tab === 'home');
+            document.getElementById('viewHome').style.display = tab === 'home' ? 'grid' : 'none';
+            document.getElementById('viewCharts').classList.toggle('active', tab === 'charts');
+            document.getElementById('viewCharts').style.display = tab === 'charts' ? 'flex' : 'none';
+            
+            const bHome = document.getElementById('btnHome'), bCharts = document.getElementById('btnCharts');
+            if (tab === 'home') { 
+                bHome.classList.add('active','text-white'); bHome.classList.remove('text-white/40'); 
+                bCharts.classList.remove('active','text-white'); bCharts.classList.add('text-white/40'); 
+            } else { 
+                bCharts.classList.add('active','text-white'); bCharts.classList.remove('text-white/40'); 
+                bHome.classList.remove('active','text-white'); bHome.classList.add('text-white/40'); 
+            }
+        };
+
+        // --- 8. RENDER ---
+        function render() {
+            const selectedMonth = els.monthSelector.value;
+            const currentItems = app.localTransactions.filter(item => item.month === selectedMonth);
+            const items15 = currentItems.filter(item => item.period === '15');
+            const items31 = currentItems.filter(item => item.period === '31');
+
+            renderList('list15', items15, 'balance15');
+            renderList('list31', items31, 'balance31');
+            renderCharts(items15, 'chartContainer15', 'infoBox15');
+            renderCharts(items31, 'chartContainer31', 'infoBox31');
+            updateSummary(currentItems);
+        }
+
+        els.monthSelector.addEventListener('change', render);
+
+        function renderList(containerId, items, balanceId) {
+            const container = document.getElementById(containerId);
+            const balanceEl = document.getElementById(balanceId);
+            container.innerHTML = '';
+            let inc = 0, exp = 0;
+
+            if (items.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 opacity-30 text-[10px] uppercase text-indigo-200">Vazio</div>`;
+            } else {
+                items.forEach(item => {
+                    if (item.type === 'income') inc += item.amount; else exp += item.amount;
+                    const isExp = item.type === 'expense';
+                    const isPaid = item.paid === true;
+                    
+                    const div = document.createElement('div');
+                    div.className = `glass-card rounded-xl p-3 flex items-center justify-between gap-3 ${isPaid ? 'item-paid' : ''} relative overflow-hidden group mb-3`;
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer py-1" onclick="app.actions.togglePaid('${item.id}', ${isPaid})">
+                            <div class="icon-check w-5 h-5 rounded-md border border-slate-600 flex items-center justify-center shrink-0 bg-slate-800/50">
+                                ${isPaid ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="text-sm font-medium text-white truncate description-text">${item.description}</h4>
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wide opacity-80">${isExp ? 'Saída' : 'Entrada'}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 z-10 pl-2">
+                            <span class="font-bold text-sm ${isExp ? 'text-rose-400' : 'text-emerald-400'} amount-text whitespace-nowrap">${formatBRL(item.amount)}</span>
+                            <div class="flex items-center border-l border-white/10 pl-2 ml-1 gap-1">
+                                <button onclick="app.ui.openModal('edit', '${item.period}', '${item.id}')" class="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-300 flex items-center justify-center"><i class="fas fa-pencil-alt text-xs"></i></button>
+                                <button onclick="app.actions.delete('${item.id}')" class="w-8 h-8 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center"><i class="fas fa-trash-alt text-xs"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+            const total = inc - exp;
+            balanceEl.innerHTML = `<span class="${total >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-semibold">${formatBRL(total)}</span>`;
+        }
+
+        function renderCharts(items, chartId, infoBoxId) {
+            const chartContainer = document.getElementById(chartId);
+            const infoBox = document.getElementById(infoBoxId);
+            infoBox.classList.remove('visible');
+            infoBox.innerHTML = '<span class="text-slate-400">Toque em um bloco</span>';
+            chartContainer.innerHTML = '';
+            const expenses = items.filter(i => i.type === 'expense').sort((a,b) => b.amount - a.amount);
+            if (expenses.length === 0) {
+                chartContainer.innerHTML = `<p class="absolute inset-0 m-auto w-fit h-fit text-[10px] text-slate-500 uppercase">Sem despesas</p>`;
+                return;
+            }
+            const total = expenses.reduce((a, b) => a + b.amount, 0);
+            const colors = ['bg-rose-500', 'bg-pink-500', 'bg-fuchsia-500', 'bg-purple-500', 'bg-violet-500', 'bg-indigo-500', 'bg-blue-500'];
+            expenses.forEach((item, index) => {
+                const percent = (item.amount / total) * 100;
+                const block = document.createElement('div');
+                block.className = `chart-block ${colors[index % colors.length]} h-16 border-r border-slate-900/10`;
+                block.style.width = `${percent}%`;
+                block.onclick = () => {
+                    infoBox.innerHTML = `<div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full ${colors[index % colors.length]}"></div><span class="font-bold text-white">${item.description}</span><span class="text-slate-300">|</span><span class="font-mono text-emerald-300">${formatBRL(item.amount)}</span></div>`;
+                    infoBox.classList.add('visible');
+                };
+                chartContainer.appendChild(block);
+            });
+        }
+
+        function updateSummary(items) {
+            const inc = items.filter(i => i.type === 'income').reduce((a, b) => a + b.amount, 0);
+            const exp = items.filter(i => i.type === 'expense').reduce((a, b) => a + b.amount, 0);
+            document.getElementById('monthTotal').innerText = formatBRL(inc - exp);
+            document.getElementById('totalIn').innerText = formatBRL(inc);
+            document.getElementById('totalOut').innerText = formatBRL(exp);
+        }
+
+        function formatBRL(val) { return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+
+        document.getElementById('addForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const mode = document.getElementById('modalMode').value;
+            const desc = document.getElementById('descInput').value;
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            const type = document.getElementById('typeInput').value;
+            const period = document.getElementById('modalPeriod').value;
+            const month = els.monthSelector.value;
+            const id = document.getElementById('modalId').value;
+
+            if (mode === 'edit' && id) {
+                await app.actions.update(id, { description: desc, amount, type });
+            } else {
+                await app.actions.add({ month, period, description: desc, amount, type, paid: false });
+            }
+            app.ui.closeModal();
+        });
+
+    </script>
+</body>
+</html>
+
+
